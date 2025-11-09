@@ -8,7 +8,7 @@ Este proyecto proporciona un servidor MCP que permite gestionar préstamos banca
 
 ## 🎥 Video Tutorial
 
-📺 **[Ver clase completa en YouTube](https://www.youtube.com/TU_VIDEO_AQUI)**
+📺 **[Ver clase completa en YouTube](https://www.youtube.com/watch?v=-nEoHu4ooyY)**
 
 En este video se explica paso a paso la implementación del servidor MCP, la arquitectura del proyecto, y cómo integrar PostgreSQL con FastMCP.
 

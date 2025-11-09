@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database service
+  postgres:
+    image: postgres:15-alpine
+    container_name: loan_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-loans_db}
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-loans_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - loan_network
+    restart: unless-stopped
+
+  # MCP Server service
+  mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loan_mcp_server
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-loans_db}
+      POOL_SIZE: ${POOL_SIZE:-20}
+      DATABASE_ECHO: ${DATABASE_ECHO:-False}
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - mcp_logs:/app/logs
+    networks:
+      - loan_network
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+    driver: local
+  mcp_logs:
+    driver: local
+
+networks:
+  loan_network:
+    driver: bridge
+    name: loan_network
